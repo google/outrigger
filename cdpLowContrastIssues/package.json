@@ -1,0 +1,17 @@
+{
+    "name": "cdp-low-contrast-issues",
+    "version": "0.0.1",
+    "description": "Test low contrast issues using CDP's implementation",
+    "author": "alexrudenko@google.com",
+    "license": "Licensed under the Apache License, Version 2.0",
+    "dependencies": {
+        "@google-cloud/functions-framework": "^1.5.1",
+        "@google-cloud/pubsub": "1.7.3",
+        "outrigger-utils": ">=0.0.1",
+        "puppeteer": "^8.0.0"
+    },
+    "scripts": {
+        "start": "functions-framework --target=cdpLowContrastIssues --signature-type=event",
+        "test": "node test.js"
+    }
+}
