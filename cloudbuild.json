@@ -1,0 +1,135 @@
+/**
+ * @license
+ * Copyright 2021 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+{
+    "steps": [
+      {
+        "name": "gcr.io/cloud-builders/gcloud",
+        "args": [
+          "functions",
+          "deploy",
+          "route",
+            "--source=./router",
+            "--env-vars-file=env.yaml",
+            "--trigger-http",
+            "--runtime=nodejs10"
+        ]
+      },
+      {
+        "name": "gcr.io/cloud-builders/gcloud",
+        "args": [
+          "functions",
+          "deploy",
+          "auditor",
+            "--source=./auditor",
+            "--trigger-topic=swa",
+            "--env-vars-file=env.yaml",
+            "--runtime=nodejs10",
+            "--memory=2048MB"
+        ]
+      },
+      {
+        "name": "gcr.io/cloud-builders/gcloud",
+        "args": [
+          "functions",
+          "deploy",
+          "wptRetriever",
+           "--source=./wptFunctions/wptRetriever",
+           "--trigger-http",
+           "--env-vars-file=env.yaml",
+           "--runtime=nodejs10"
+        ]
+      },
+      {
+        "name": "gcr.io/cloud-builders/gcloud",
+        "args": [
+          "functions",
+          "deploy",
+          "wptRunner",
+           "--source=./wptFunctions/wptRunner",
+           "--trigger-topic=wpt",
+           "--env-vars-file=env.yaml",
+           "--runtime=nodejs10"
+        ]
+      },
+      {
+        "name": "gcr.io/cloud-builders/gcloud",
+        "args": [
+          "functions",
+          "deploy",
+          "snapper",
+           "--source=./snapper",
+           "--trigger-topic=snap",
+           "--runtime=nodejs10",
+           "--env-vars-file=env.yaml",
+           "--memory=1024MB"
+        ]
+      },
+      {
+        "name": "gcr.io/cloud-builders/gcloud",
+        "args": [
+          "functions",
+          "deploy",
+          "uxAutomation",
+           "--source=./uxAutomation",
+           "--trigger-topic=lhux",
+           "--env-vars-file=env.yaml",
+           "--runtime=nodejs10",
+           "--memory=2048MB"
+        ]
+      },
+      {
+        "name": "gcr.io/cloud-builders/gcloud",
+        "args": [
+          "functions",
+          "deploy",
+          "trixWriter",
+           "--source=./trixWriter",
+           "--trigger-http",
+           "--env-vars-file=env.yaml",
+           "--runtime=nodejs10",
+           "--memory=1024MB"
+        ]
+      },
+      {
+        "name": "gcr.io/cloud-builders/gcloud",
+        "args": [
+          "functions",
+          "deploy",
+          "sqlWriter",
+           "--source=./sqlWriter",
+           "--trigger-http",
+           "--runtime=nodejs10",
+           "--env-vars-file=env.yaml",
+           "--memory=1024MB"
+        ]
+      },
+      {
+        "name": "gcr.io/cloud-builders/gcloud",
+        "args": [
+          "functions",
+          "deploy",
+          "fontImpactLayout",
+           "--source=./fontImpactLayout",
+           "--trigger-topic=fil",
+           "--runtime=nodejs10",
+           "--env-vars-file=env.yaml",
+           "--memory=1024MB"
+        ]
+      }
+     ]
+}
