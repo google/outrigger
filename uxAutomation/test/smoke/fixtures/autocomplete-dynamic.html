@@ -1,0 +1,54 @@
+<!doctype html>
+<!--
+ * Copyright 2018 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+-->
+<html>
+<body>
+  <p>This page tests autocomplete audit with a dynamic form.</p>
+  <form id="form">
+  </form>
+  <script>
+    function createFormFields(form, fields) {
+      for (const field of fields) {
+        const container = document.createElement('div');
+        const label = document.createElement('label');
+        const input = document.createElement('input');
+
+        label.htmlFor = field.name;
+        label.innerText = field.name;
+
+        input.type = 'text';
+        input.id = field.name;
+        input.name = field.name;
+        input.autocomplete = field.autocomplete;
+
+        container.appendChild(label);
+        container.appendChild(input);
+
+        form.appendChild(container);
+      }
+    }
+
+    createFormFields(document.querySelector('#form'), [
+      {
+        name: 'ccname',
+        autocomplete: 'cc-name',
+      },
+      {
+        name: 'cardnumber',
+        autocomplete: 'cc-number',
+      },
+      {
+        name: 'cvc',
+        autocomplete: 'cc-csc',
+      },
+      {
+        name: 'exp-date',
+        autocomplete: 'cc-exp',
+      },
+    ]);
+  </script>
+</body>
+</html>
