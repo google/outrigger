@@ -30,10 +30,11 @@
  */
 const {tasks} = require('./tasks.json');
 
-const {PubSub} = require("@google-cloud/pubsub");
+const {PubSub} = require('@google-cloud/pubsub');
 
 // Get a list of task codes we want to check against.
-const /** !Object<string, string> */ taskCodes = tasks.map(task => task.taskCode);
+const /** !Object<string, string> */ taskCodes =
+    tasks.map(task => task.taskCode);
 // Create a pubsub client.
 const /** !PubSub */ pubSubClient = new PubSub();
 
@@ -47,28 +48,38 @@ const /** !PubSub */ pubSubClient = new PubSub();
 exports.route = (req, res) => {
   try {
     // Extract base query params w/ deconstruction
-    const {/** string */ targetLocation,
-           /** string */ target,
-           /** string */ url,
-           /** !Object<string, string> */ ...rest} = req.query;
+    const {
+      /** string */ targetLocation,
+      /** string */ target,
+      /** string */ url,
+      /** !Object<string, string> */...rest
+    } = req.query;
 
     // Check that all necessary params exist.
-    if(!target || !url || !targetLocation) {
+    if (!target || !url || !targetLocation) {
       // If all necessary query params don't exist
       // return a 400 (bad request) error with message.
-      res.status(400).send("Malformed URL. A valid URL must include" +
-                           " a url, target, and targetLocation");
+      res.status(400).send(
+          'Malformed URL. A valid URL must include' +
+          ' a url, target, and targetLocation');
     }
 
-    // Iterate through rest, removing task codes if present
+    // Check if the optional region param is present.
+    // No region results in the default cloud function
+    // Which is located in AMER (US)
+    const /* string */ region =
+        rest.hasOwnProperty('region') ? rest.region : null;
+
+    // Iterate through rest, removing task/region codes if present
     // This distills any remaining args that might be present
     // Args are potentially used for task specific purposes
-    let /* !Object<string, string> */ args = Object.keys(rest)
-      .filter(key => !taskCodes.includes(key))
-      .reduce((obj, key) => {
-        obj[key] = rest[key];
-        return obj;
-      }, {});
+    let /* !Object<string, string> */ args =
+        Object.keys(rest)
+            .filter(key => !taskCodes.includes(key) || key !== 'region')
+            .reduce((obj, key) => {
+              obj[key] = rest[key];
+              return obj;
+            }, {});
 
     // If the object is empty, set to null for the message
     args = (Object.keys(args).length != 0) ? args : null;
@@ -78,11 +89,7 @@ exports.route = (req, res) => {
      * @type {{targetLocation: string, url: string,
      *   args: ?Object<string, string>, target: string, taskCode: string}}
      */
-    let customBuffer = {
-      targetLocation,
-      url,
-      args
-    };
+    let customBuffer = {targetLocation, url, args};
 
     /**
       Valid process targets are those included in task.json. Iterate through all
@@ -92,16 +99,21 @@ exports.route = (req, res) => {
       response with all downstream processes and the message id of the new
       message for that topic.
     */
-    Promise.all(taskCodes.map(task => {
-      if(req.query[task] == "true") {
-        customBuffer.target = `${target}_${task}`;
-        customBuffer.taskCode = task;
-        return publishMessage(pubSubClient, customBuffer, task).then(msg => {
-          return {"process": task, "messageId": msg};
-        });
-      }
-    }))
-    .then(result => res.send(result));
+    Promise
+        .all(taskCodes.map(task => {
+          if (req.query[task] == 'true') {
+            customBuffer.target = `${target}_${task}`;
+            // If region is not null, we append the region with a dash
+            // i.e. if region is 'emea', we route to 'task-emea'
+            customBuffer.taskCode = region ? `${task}-${region}` : task;
+            return publishMessage(
+                       pubSubClient, customBuffer, customBuffer.taskCode)
+                .then(msg => {
+                  return {'process': customBuffer.taskCode, 'messageId': msg};
+                });
+          }
+        }))
+        .then(result => res.send(result));
   } catch (err) {
     console.log(err);
     // Logs to GCP:
@@ -119,9 +131,8 @@ exports.route = (req, res) => {
  */
 async function publishMessage(pubSubClient, customBufferObject, topicName) {
   const /** string */ customBufferJson = JSON.stringify(customBufferObject);
-  const /** string */ message =  await pubSubClient
-    .topic(topicName)
-    .publish(Buffer.from(customBufferJson));
+  const /** string */ message = await pubSubClient.topic(topicName).publish(
+      Buffer.from(customBufferJson));
   console.log(`Published ${message} w/ buffer ${customBufferJson}`);
   return message;
 }
